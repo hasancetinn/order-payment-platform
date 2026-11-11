@@ -83,7 +83,7 @@ notifications and the 401 without a token.
 | Tool | URL |
 |---|---|
 | API (gateway) | http://localhost:18080 |
-| Swagger UI per service | http://localhost:18082/swagger-ui.html (order), 18083 (inventory), ... |
+| Swagger UI (all services, with JWT Authorize) | http://localhost:18080 (redirects to /swagger-ui.html) |
 | Jaeger (traces) | http://localhost:16686 |
 | Prometheus | http://localhost:9090 |
 | Grafana | http://localhost:13000 |

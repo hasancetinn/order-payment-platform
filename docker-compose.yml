@@ -108,6 +108,7 @@ services:
       OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
       JWT_SECRET: ${JWT_SECRET:-local-dev-secret-key-at-least-32-bytes-long!}
       REDIS_HOST: redis
+      REDIS_PORT: "6379"
       AUTH_SERVICE_URL: http://auth-service:8081
       ORDER_SERVICE_URL: http://order-service:8082
       INVENTORY_SERVICE_URL: http://inventory-service:8083

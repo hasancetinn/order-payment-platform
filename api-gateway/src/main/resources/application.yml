@@ -21,6 +21,36 @@ spring:
                 redis-rate-limiter.requestedTokens: 1
                 key-resolver: "#{@clientKeyResolver}"
           routes:
+            - id: docs-auth
+              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/docs/auth
+              filters:
+                - SetPath=/v3/api-docs
+            - id: docs-orders
+              uri: ${ORDER_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/docs/orders
+              filters:
+                - SetPath=/v3/api-docs
+            - id: docs-inventory
+              uri: ${INVENTORY_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/docs/inventory
+              filters:
+                - SetPath=/v3/api-docs
+            - id: docs-payments
+              uri: ${PAYMENT_SERVICE_URL:http://localhost:8084}
+              predicates:
+                - Path=/docs/payments
+              filters:
+                - SetPath=/v3/api-docs
+            - id: docs-notifications
+              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8085}
+              predicates:
+                - Path=/docs/notifications
+              filters:
+                - SetPath=/v3/api-docs
             - id: auth-service
               uri: ${AUTH_SERVICE_URL:http://localhost:8081}
               predicates:
@@ -51,6 +81,16 @@ spring:
                 - Path=/api/notifications/**
               filters:
                 - StripPrefix=1
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - {name: auth, url: /docs/auth}
+      - {name: orders, url: /docs/orders}
+      - {name: inventory, url: /docs/inventory}
+      - {name: payments, url: /docs/payments}
+      - {name: notifications, url: /docs/notifications}
 
 platform:
   security:

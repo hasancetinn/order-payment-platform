@@ -15,7 +15,11 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.RouterFunctions;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+import java.net.URI;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -32,6 +36,7 @@ public class GatewayConfig {
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         .pathMatchers("/actuator/health/**", "/actuator/info", "/actuator/prometheus").permitAll()
+                        .pathMatchers("/", "/swagger-ui.html", "/swagger-ui/**", "/webjars/**", "/v3/api-docs/**", "/docs/**").permitAll()
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()))
                 .build();
@@ -50,5 +55,13 @@ public class GatewayConfig {
             var address = exchange.getRequest().getRemoteAddress();
             return Mono.just(address == null ? "unknown" : address.getAddress().getHostAddress());
         };
+    }
+
+    /** The gateway root opens the aggregated API documentation. */
+    @Bean
+    public RouterFunction<ServerResponse> rootRedirect() {
+        return RouterFunctions.route()
+                .GET("/", request -> ServerResponse.temporaryRedirect(URI.create("/swagger-ui.html")).build())
+                .build();
     }
 }
