@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Build and test all modules
+        run: mvn -B verify
+      - name: Build service images
+        run: |
+          for module in api-gateway auth-service order-service inventory-service payment-service notification-service; do
+            docker build --build-arg MODULE=$module -t $module:ci .
+          done

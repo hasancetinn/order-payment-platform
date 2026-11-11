@@ -1,0 +1,80 @@
+server:
+  port: 8084
+  shutdown: graceful
+
+spring:
+  application:
+    name: payment-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:15432/paymentdb}
+    username: ${DB_USER:platform}
+    password: ${DB_PASSWORD:platform}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    # platform migrations (outbox + processed_event) first, then the service's own
+    locations: classpath:db/platform,classpath:db/migration
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    consumer:
+      group-id: ${spring.application.name}
+      auto-offset-reset: earliest
+    producer:
+      acks: all
+    template:
+      observation-enabled: true
+    listener:
+      observation-enabled: true
+
+platform:
+  security:
+    jwt-secret: ${JWT_SECRET:local-dev-secret-key-at-least-32-bytes-long!}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,circuitbreakers
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTLP_TRACING_ENDPOINT:http://localhost:4318/v1/traces}
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-}]"
+
+payment:
+  simulation:
+    decline-above: ${PAYMENT_DECLINE_ABOVE:10000}   # business decline, e.g. card limit
+    failure-rate: ${PAYMENT_FAILURE_RATE:0.0}       # 0..1, simulated provider outages (retry + circuit breaker demo)
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      paymentProvider:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 2
+        record-exceptions:
+          - com.hasancetin.platform.payment.provider.PaymentProviderUnavailableException
+  retry:
+    instances:
+      paymentProvider:
+        max-attempts: 3
+        wait-duration: 200ms
+        retry-exceptions:
+          - com.hasancetin.platform.payment.provider.PaymentProviderUnavailableException
+        # an open breaker must go straight to the fallback instead of being retried
+        ignore-exceptions:
+          - io.github.resilience4j.circuitbreaker.CallNotPermittedException

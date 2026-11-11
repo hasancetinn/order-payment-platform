@@ -1,0 +1,3 @@
+com.hasancetin.platform.common.config.PlatformAutoConfiguration
+com.hasancetin.platform.common.config.PlatformSecurityAutoConfiguration
+com.hasancetin.platform.common.config.PlatformWebAutoConfiguration
